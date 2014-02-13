@@ -1,0 +1,6 @@
+Ditt konto har blivit aktiverat på {shopname}.
+
+Login : {email}
+Lösenord: {passwd}
+
+{shop_url}

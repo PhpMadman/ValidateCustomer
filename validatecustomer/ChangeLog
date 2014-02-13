@@ -1,0 +1,11 @@
+Version 1.1
+* Added support for translations
+* Added redirect to validate page.
+* Fixed text typo
+* Added som text to validate page.
+
+Version 1.2
+ * Changed redirect address
+ * Added mail notify code from Anila Niaz's customerupdatenotification module
+ https://github.com/anila-niaz/Prestashop/tree/master/Modules/customerupdatenotification
+ * Diabled notify code, it's not working
