@@ -96,8 +96,8 @@ class ValidateCustomer extends Module
 		SET active = 0
 		WHERE `id_customer` = \''.(int)$id_customer.'\'');
 // 		Tools::redirect(__PS_BASE_URI__.'index.php?fc=module&module=' . $this->name . '&controller=validate');
-// 	Tools::redirect(__PS_BASE_URI__.'module/validatecustomer/validate');
-	Tools::redirect('http://www.nldistribution.se/module/validatecustomer/validate');
+ 	Tools::redirect(__PS_BASE_URI__.'module/validatecustomer/validate');
+//	Tools::redirect('http://www.nldistribution.se/module/validatecustomer/validate');
 
 	}
 
