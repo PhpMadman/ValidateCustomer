@@ -5,7 +5,16 @@ Version 1.1
 * Added som text to validate page.
 
 Version 1.2
- * Changed redirect address
- * Added mail notify code from Anila Niaz's customerupdatenotification module
- https://github.com/anila-niaz/Prestashop/tree/master/Modules/customerupdatenotification
- * Diabled notify code, it's not working
+* Changed redirect address
+* Added mail notify code from Anila Niaz's customerupdatenotification module
+https://github.com/anila-niaz/Prestashop/tree/master/Modules/customerupdatenotification
+* Diabled notify code, it's not working
+
+Version 1.3
+* 1.6 upgrade
+* Competly remove code for auto mail
+* Improved the code for how account is deactivated
+* Wrote new and improved mail code
+* Added php switch for mail
+* Mail should be sent in customer language
+* Added a db table to see what customers has been validated by module

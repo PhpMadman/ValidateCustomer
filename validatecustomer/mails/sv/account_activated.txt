@@ -1,6 +1,11 @@
-Ditt konto har blivit aktiverat på {shopname}.
 
-Login : {email}
-Lösenord: {passwd}
+[{shop_url}] 
 
-{shop_url}
+Hej {firstname} {lastname}.
+
+Konto information från {shop_name}
+
+Ditt konto har blivit godkänt och är nu aktiverat
+
+Du kan nu lägga beställningar i vår butik: {shop_name}
+[{shop_url}] 
