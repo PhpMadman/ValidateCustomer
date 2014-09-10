@@ -9,9 +9,10 @@ class ValidateCustomer extends Module
 	{
 		$this->name = 'validatecustomer';
 		$this->tab = 'administration';
-		$this->version = '1.3';
+		$this->version = '1.4';
 		$this->author = 'Madman';
 		$this->need_instance = 0;
+		$this->bootstrap = true;
 
 		$this->validate_customer = array();
 		$this->send_mail = true;
@@ -20,7 +21,6 @@ class ValidateCustomer extends Module
 
 		$this->displayName = $this->l('Validate Customer');
 		$this->description = $this->l('Validate customer before they can login');
-
 
 	}
 
@@ -36,6 +36,116 @@ class ValidateCustomer extends Module
 			$this->registerHook('actionObjectCustomerUpdateAfter') &&
 			$this->installDB()
 		);
+	}
+	
+	public function getContent()
+	{
+		if (Tools::isSubmit('submitUpdateConfig'))
+			$this->_updateConfig();
+		
+		return $this->renderSettingsForm();
+	}
+	
+	private function _updateConfig()
+	{
+		Configuration::updateValue('PS_MOD_VALCUS_SENDMAIL',Tools::getValue('PS_MOD_VALCUS_SENDMAIL'));
+		Configuration::updateValue('PS_MOD_VALCUS_EMAILS',Tools::getValue('PS_MOD_VALCUS_EMAILS'));	
+	}
+	
+	public function renderSettingsForm()
+	{
+		$fields_form = array(
+			'form' => array(
+				'legend' => array(
+					'title' => $this->l('Settings'),
+				),
+				'input' => array(
+					array(
+						'type' => $this->_getSwtichType(),
+						'class' => 't',
+						'label' => $this->l('Send new registration mail'),
+						'name' => 'PS_MOD_VALCUS_SENDMAIL',
+						'is_bool' => true,
+						'hint' => $this->l('Enable sending an e-mail when a customer reg them self'),
+						'values' => array(
+							array(
+								'id' => 'active_on',
+								'value' => 1,
+								'label' => $this->l('Enabled')
+							),
+							array(
+								'id' => 'active_off',
+								'value' => 0,
+								'label' => $this->l('Disabled')
+							),
+						),
+					),
+					array(
+						'type' => 'textarea',
+						'name' => 'PS_MOD_VALCUS_EMAILS',
+						'label' => $this->l('Send email to the following addresses'),
+						'hint' => $this->l('One e-mail per line'),
+					)
+				),
+				'submit' => array(
+					'title' => $this->l('Save'),
+				),
+			)
+		);
+
+		if (!$this->_is16())
+			foreach ($fields_form as &$form)
+				foreach ($form as $key => &$table)
+					if ($key == 'input')
+						foreach ($table as &$cfg)
+						{
+							$cfg['desc'] = $cfg['hint'];
+							unset($cfg['hint']);
+						}
+
+		$helper = new HelperForm();
+		$helper->show_toolbar = false;
+		$helper->table = $this->table;
+		$lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
+		$helper->default_form_language = $lang->id;
+		$helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+		$this->fields_form = array();
+		$helper->identifier = $this->identifier;
+		$helper->submit_action = 'submitUpdateConfig';
+		$helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+			.'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
+		$helper->token = Tools::getAdminTokenLite('AdminModules');
+		$helper->tpl_vars = array(
+			'fields_value' => $this->getConfigFieldsValues(),
+			'languages' => $this->context->controller->getLanguages(),
+			'id_language' => $this->context->language->id
+		);
+
+		return $helper->generateForm(array($fields_form));
+	}
+
+	public function getConfigFieldsValues()
+	{
+		return array(
+			'PS_MOD_VALCUS_SENDMAIL' => Configuration::get('PS_MOD_VALCUS_SENDMAIL'),
+			'PS_MOD_VALCUS_EMAILS' => Configuration::get('PS_MOD_VALCUS_EMAILS'),
+		);
+	}
+
+	private function _getSwtichType()
+	{
+		if ($this->_is16())
+			return 'switch';
+		else
+			return 'radio';
+	}
+
+	private function _is16()
+	{
+		if (version_compare(_PS_VERSION_, '1.6', '>=') >= 1)
+			return true;
+
+		return false;
 	}
 
 	private function installDB()
