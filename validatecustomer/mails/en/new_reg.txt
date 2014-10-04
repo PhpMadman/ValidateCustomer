@@ -1,9 +1,9 @@
 
 [{shop_url}] 
 
-Hi {firstname} {lastname}.
+HELLO
 
 Account information from {shop_name}
 
-A new customer has registerd on your shop
+A new customer with e-mail {email} has registerd on your shop
 [{shop_url}] 

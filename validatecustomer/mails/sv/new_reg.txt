@@ -1,0 +1,9 @@
+
+[{shop_url}] 
+
+HEJ
+
+Konto information från {shop_name}
+
+En ny kund med e-mail {email} har registrerat sig i din butik
+[{shop_url}] 

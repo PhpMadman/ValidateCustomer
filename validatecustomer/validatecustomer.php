@@ -15,7 +15,6 @@ class ValidateCustomer extends Module
 		$this->bootstrap = true;
 
 		$this->validate_customer = array();
-		$this->send_mail = true;
 
 		parent::__construct();
 
@@ -49,6 +48,7 @@ class ValidateCustomer extends Module
 	private function _updateConfig()
 	{
 		Configuration::updateValue('PS_MOD_VALCUS_SENDMAIL',Tools::getValue('PS_MOD_VALCUS_SENDMAIL'));
+		Configuration::updateValue('PS_MOD_VALCUS_SEND_REGMAIL',Tools::getValue('PS_MOD_VALCUS_SEND_REGMAIL'));
 		Configuration::updateValue('PS_MOD_VALCUS_EMAILS',Tools::getValue('PS_MOD_VALCUS_EMAILS'));	
 	}
 	
@@ -64,7 +64,7 @@ class ValidateCustomer extends Module
 						'type' => $this->_getSwtichType(),
 						'class' => 't',
 						'label' => $this->l('Send new registration mail'),
-						'name' => 'PS_MOD_VALCUS_SENDMAIL',
+						'name' => 'PS_MOD_VALCUS_SEND_REGMAIL',
 						'is_bool' => true,
 						'hint' => $this->l('Enable sending an e-mail when a customer reg them self'),
 						'values' => array(
@@ -81,11 +81,32 @@ class ValidateCustomer extends Module
 						),
 					),
 					array(
-						'type' => 'textarea',
+						'type' => 'text',
 						'name' => 'PS_MOD_VALCUS_EMAILS',
 						'label' => $this->l('Send email to the following addresses'),
-						'hint' => $this->l('One e-mail per line'),
-					)
+						'hint' => $this->l('Coma seperated list'),
+						'size' => 100,
+					),
+					array(
+						'type' => $this->_getSwtichType(),
+						'class' => 't',
+						'label' => $this->l('Auto send mail when account activated'),
+						'name' => 'PS_MOD_VALCUS_SENDMAIL',
+						'is_bool' => true,
+						'hint' => $this->l('Inform the customer there account has been activated'),
+						'values' => array(
+							array(
+								'id' => 'active_on',
+								'value' => 1,
+								'label' => $this->l('Enabled')
+							),
+							array(
+								'id' => 'active_off',
+								'value' => 0,
+								'label' => $this->l('Disabled')
+							),
+						),
+					),
 				),
 				'submit' => array(
 					'title' => $this->l('Save'),
@@ -128,6 +149,7 @@ class ValidateCustomer extends Module
 	{
 		return array(
 			'PS_MOD_VALCUS_SENDMAIL' => Configuration::get('PS_MOD_VALCUS_SENDMAIL'),
+			'PS_MOD_VALCUS_SEND_REGMAIL' => Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL'),
 			'PS_MOD_VALCUS_EMAILS' => Configuration::get('PS_MOD_VALCUS_EMAILS'),
 		);
 	}
@@ -166,7 +188,30 @@ class ValidateCustomer extends Module
 
 		Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id));
 
-		Tools::redirect(__PS_BASE_URI__.'module/validatecustomer/validate');
+			if (Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL'))
+			{
+				$emails = explode(',', Configuration::get('PS_MOD_VALCUS_EMAILS'));
+				foreach ($emails as $reg_email)
+				{
+					// Send mail
+					Mail::Send(
+						Configuration::get('PS_LANG_DEFAULT'),
+						'new_reg',
+						Mail::l('A new customers has registered', Configuration::get('PS_LANG_DEFAULT')),
+						array('{email}' => $customer->email,
+							'{shopname}' => $this->context->shop->name),
+						$reg_email,
+						$this->context->shop->name,
+						NULL,
+						$this->context->shop->name,
+						NULL,
+						NULL,
+						dirname(__FILE__).'/mails/'
+						);
+				}
+			}
+
+			Tools::redirect('?fc=module&module=validatecustomer&controller=validate');
 	}
 
 	public function hookDisplayCustomerAccountForm()
@@ -188,6 +233,7 @@ class ValidateCustomer extends Module
 				$this->validate_customer[$customer->id] = true; // save state in array
 		}
 	}
+
 	public function hookActionObjectCustomerUpdateAfter($params)
 	{
 		$customer = $params['object'];
@@ -205,12 +251,12 @@ class ValidateCustomer extends Module
 				else // customer is not in table, insert customer
 					Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id, 'validate' => 1));
 
-				if ($this->send_mail)
+				if (Configuration::get('PS_MOD_VALCUS_SENDMAIL'))
 					// Send mail
 					Mail::Send(
 						$customer->id_lang,
 						'account_activated',
-						Mail::l('Your account has been activated.', $customer->id_lang),
+						Mail::l('Your account has been activated', $customer->id_lang),
 						array('{email}' => $customer->email, '{firstname}' => $customer->firstname, '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
 						$customer->email,
 						$customer->lastname,
