@@ -9,6 +9,6 @@ class ValidateCustomerValidateModuleFrontController extends ModuleFrontControlle
     public function initContent()
     {
         parent::initContent();
-        $this->setTemplate('validate.tpl');
+        $this->setTemplate('module:validatecustomer/views/templates/front/validate.tpl');
     }
 }
