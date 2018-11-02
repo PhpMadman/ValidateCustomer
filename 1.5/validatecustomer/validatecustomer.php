@@ -231,7 +231,7 @@ class ValidateCustomer extends Module
                     PrestaShopLogger::addLog('VALCUS - Mail sent');
                 }
             }
-            Tools::redirect('?fc=module&module=validatecustomer&controller=validate');
+            Tools::redirect(Context::getContext()->link->getModuleLink('validatecustomer', 'validate'));
         }
     }
 

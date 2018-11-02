@@ -1,5 +1,5 @@
 <?php
-class ValidateCustomerValidateModuleFrontController extends ModuleFrontController
+class validatecustomervalidateModuleFrontController extends ModuleFrontController
 {
     public $ssl = true;
 
