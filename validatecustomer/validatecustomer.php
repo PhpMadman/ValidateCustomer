@@ -11,7 +11,7 @@ class ValidateCustomer extends Module
     {
         $this->name = 'validatecustomer';
         $this->tab = 'administration';
-        $this->version = '1.5';
+        $this->version = '1.5.0';
         $this->author = 'Madman';
         $this->need_instance = 0;
         $this->bootstrap = true;

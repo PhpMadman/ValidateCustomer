@@ -28,3 +28,10 @@ Version 1.4
 Version 1.5 Beta
 * Added code to ignore guestaccounts from order process
 
+-- A few years gap due to Madman got lost in a cave, or other wisebusy --
+
+Version 1.5.0
+* Updated for PS 1.7
+* Fixed 500 Error on redirect
+* Fixed sending of mail
+* Updated template to PS 1.7 standard
