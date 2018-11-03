@@ -35,3 +35,6 @@ Version 1.5.0
 * Fixed 500 Error on redirect
 * Fixed sending of mail
 * Updated template to PS 1.7 standard
+
+Version 1.5.1
+* Re-added support for 1.6 versions

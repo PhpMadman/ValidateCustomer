@@ -11,7 +11,7 @@ class ValidateCustomer extends Module
     {
         $this->name = 'validatecustomer';
         $this->tab = 'administration';
-        $this->version = '1.5.0';
+        $this->version = '1.5.1';
         $this->author = 'Madman';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -173,11 +173,21 @@ class ValidateCustomer extends Module
         }
     }
 
-    private function _is16()
+    private function _is16($not17 = false)
     {
+        // Version is higher or equal to 1.6
         if (version_compare(_PS_VERSION_, '1.6', '>=') >= 1)
         {
-            return true;
+            if ($not17)
+            {
+                // Version is higher or equal to 1.7 and therfore is not 1.6
+                if (version_compare(_PS_VERSION_, '1.7', '>=') >= 1)
+                {
+                    return false;
+                }
+                return true; // version was less then 1.7
+            }
+            return true; // version was higher then 1.6
         }
         return false;
     }
