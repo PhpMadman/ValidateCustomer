@@ -17,14 +17,14 @@
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 */
 
-if(!defined('_PS_VERSION_'))
+if (!defined('_PS_VERSION_'))
 {
     exit;
 }
 
 class ValidateCustomer extends Module
 {
-    public function  __construct()
+    public function __construct()
     {
         $this->name = 'validatecustomer';
         $this->tab = 'administration';
@@ -154,11 +154,13 @@ class ValidateCustomer extends Module
         $helper->table = $this->table;
         $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
         $helper->default_form_language = $lang->id;
-        $helper->allow_employee_form_lang = (Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0);
+        $helper->allow_employee_form_lang = (Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ?
+            Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0);
         $this->fields_form = array();
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitUpdateConfig';
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.
+            '&tab_module='.$this->tab.'&module_name='.$this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->tpl_vars = array(
             'fields_value' => $this->getConfigFieldsValues(),
@@ -276,7 +278,8 @@ class ValidateCustomer extends Module
         WHERE `id_customer` = '.$customer->id);
         if ($validate != 1) // if not validated
         {
-            $customer_db = new Customer($customer->id); // customer has to be loaded again, beacuse object already has changed the active status.
+            $customer_db = new Customer($customer->id);
+            // customer has to be loaded again, beacuse object already has changed the active status.
             if ($customer_db->active != 1) // and if account is disabled before update
             {
                 $this->validate_customer[$customer->id] = true; // save state in array
@@ -298,11 +301,13 @@ class ValidateCustomer extends Module
                 WHERE `id_customer` = '.$customer->id);
                 if ($id_customer > 0) // if id higher then 0, then update
                 {
-                    Db::getInstance()->update('customer_validate', array('validate' => 1), '`id_customer` = '.$customer->id);
+                    Db::getInstance()->update('customer_validate', array('validate' => 1),
+                        '`id_customer` = '.$customer->id);
                 }
                 else // customer is not in table, insert customer
                 {
-                    Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id, 'validate' => 1) );
+                    Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id,
+                        'validate' => 1) );
                 }
 
                 if (Configuration::get('PS_MOD_VALCUS_SENDMAIL'))
@@ -312,7 +317,8 @@ class ValidateCustomer extends Module
                     $customer->id_lang,
                     'account_activated',
                     Mail::l('Your account has been activated', $customer->id_lang),
-                    array('{email}' => $customer->email, '{firstname}' => $customer->firstname, '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
+                    array('{email}' => $customer->email, '{firstname}' => $customer->firstname,
+                        '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
                     $customer->email,
                     $customer->lastname,
                     NULL,
@@ -327,4 +333,3 @@ class ValidateCustomer extends Module
         }
     }
 }
-?>
