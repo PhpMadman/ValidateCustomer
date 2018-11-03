@@ -18,7 +18,7 @@
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 */
 
-class validatecustomervalidateModuleFrontController extends ModuleFrontController
+class ValidateCustomerValidateModuleFrontController extends ModuleFrontController
 {
     public $ssl = true;
 
@@ -28,7 +28,7 @@ class validatecustomervalidateModuleFrontController extends ModuleFrontControlle
     public function initContent()
     {
         parent::initContent();
-        if ((version_compare(_PS_VERSION_, '1.6', '>=') >= 1) && (version_compare(_PS_VERSION_, '1.7', '<') >= 1) )
+        if ((version_compare(_PS_VERSION_, '1.6', '>=') >= 1) && (version_compare(_PS_VERSION_, '1.7', '<') >= 1))
         {
             $this->setTemplate('validate.tpl');
         }
