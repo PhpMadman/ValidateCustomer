@@ -17,8 +17,7 @@
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 */
 
-if (!defined('_PS_VERSION_'))
-{
+if (!defined('_PS_VERSION_')) {
     exit;
 }
 
@@ -40,8 +39,7 @@ class ValidateCustomer extends Module
 
     public function install()
     {
-        if (Shop::isFeatureActive())
-        {
+        if (Shop::isFeatureActive()) {
             Shop::setContext(Shop::CONTEXT_ALL);
         }
         return ( parent::install() &&
@@ -55,8 +53,7 @@ class ValidateCustomer extends Module
 
     public function getContent()
     {
-        if (Tools::isSubmit('submitUpdateConfig'))
-        {
+        if (Tools::isSubmit('submitUpdateConfig')) {
             $this->_updateConfig();
         }
         return $this->renderSettingsForm();
@@ -64,9 +61,9 @@ class ValidateCustomer extends Module
 
     private function _updateConfig()
     {
-        Configuration::updateValue('PS_MOD_VALCUS_SENDMAIL',Tools::getValue('PS_MOD_VALCUS_SENDMAIL'));
-        Configuration::updateValue('PS_MOD_VALCUS_SEND_REGMAIL',Tools::getValue('PS_MOD_VALCUS_SEND_REGMAIL'));
-        Configuration::updateValue('PS_MOD_VALCUS_EMAILS',Tools::getValue('PS_MOD_VALCUS_EMAILS'));
+        Configuration::updateValue('PS_MOD_VALCUS_SENDMAIL', Tools::getValue('PS_MOD_VALCUS_SENDMAIL'));
+        Configuration::updateValue('PS_MOD_VALCUS_SEND_REGMAIL', Tools::getValue('PS_MOD_VALCUS_SEND_REGMAIL'));
+        Configuration::updateValue('PS_MOD_VALCUS_EMAILS', Tools::getValue('PS_MOD_VALCUS_EMAILS'));
     }
 
     public function renderSettingsForm()
@@ -131,16 +128,11 @@ class ValidateCustomer extends Module
             ),
         );
 
-        if (!$this->_is16())
-        {
-            foreach ($fields_form as &$form)
-            {
-                foreach ($form as $key => &$table)
-                {
-                    if ($key == 'input')
-                    {
-                        foreach ($table as &$cfg)
-                        {
+        if (!$this->_is16()) {
+            foreach ($fields_form as &$form) {
+                foreach ($form as $key => &$table) {
+                    if ($key == 'input') {
+                        foreach ($table as &$cfg) {
                             $cfg['desc'] = $cfg['hint'];
                             unset($cfg['hint']);
                         }
@@ -169,10 +161,10 @@ class ValidateCustomer extends Module
         );
 
         return $helper->generateForm(array($fields_form));
-        }
+    }
 
-        public function getConfigFieldsValues()
-        {
+    public function getConfigFieldsValues()
+    {
         return array(
             'PS_MOD_VALCUS_SENDMAIL' => Configuration::get('PS_MOD_VALCUS_SENDMAIL'),
             'PS_MOD_VALCUS_SEND_REGMAIL' => Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL'),
@@ -182,12 +174,9 @@ class ValidateCustomer extends Module
 
     private function _getSwtichType()
     {
-        if ($this->_is16())
-        {
+        if ($this->_is16()) {
             return 'switch';
-        }
-        else
-        {
+        } else {
             return 'radio';
         }
     }
@@ -195,13 +184,10 @@ class ValidateCustomer extends Module
     private function _is16($not17 = false)
     {
         // Version is higher or equal to 1.6
-        if (version_compare(_PS_VERSION_, '1.6', '>=') >= 1)
-        {
-            if ($not17)
-            {
+        if (version_compare(_PS_VERSION_, '1.6', '>=') >= 1) {
+            if ($not17) {
                 // Version is higher or equal to 1.7 and therfore is not 1.6
-                if (version_compare(_PS_VERSION_, '1.7', '>=') >= 1)
-                {
+                if (version_compare(_PS_VERSION_, '1.7', '>=') >= 1) {
                     return false;
                 }
                 return true; // version was less then 1.7
@@ -213,34 +199,29 @@ class ValidateCustomer extends Module
 
     private function installDB()
     {
-    return Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'customer_validate` (
-        `id_customer` int(10) NOT NULL,
-        `validate` int(1) NOT NULL DEFAULT 0,
-        PRIMARY KEY (`id_customer`)
-        ) ENGINE=MyISAM DEFAULT CHARSET=utf8;');
+        return Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'customer_validate` (
+            `id_customer` int(10) NOT NULL,
+            `validate` int(1) NOT NULL DEFAULT 0,
+            PRIMARY KEY (`id_customer`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8;');
     }
 
     public function hookActionCustomerAccountAdd()
     {
         // This is the hook that actually disables customer
         $customer = new Customer($this->context->customer->id);
-        if ($customer->is_guest)
-        {
+        if ($customer->is_guest) {
         // Do nothing
-        }
-        else
-        {
+        } else {
             $this->context->customer->mylogout();
             $customer->active = 0;
             $customer->update();
             Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id));
-            if (Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL'))
-            {
+            if (Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL')) {
                 PrestaShopLogger::addLog('VALCUS - Reg Mail On');
                 $emails = explode(',', Configuration::get('PS_MOD_VALCUS_EMAILS'));
-                PrestaShopLogger::addLog('E-mails: '.Configuration::get('PS_MOD_VALCUS_EMAILS') );
-                foreach ($emails as $reg_email)
-                {
+                PrestaShopLogger::addLog('E-mails: '.Configuration::get('PS_MOD_VALCUS_EMAILS'));
+                foreach ($emails as $reg_email) {
                     PrestaShopLogger::addLog('VALCUS - forreach mail');
                     // Send mail
                     Mail::Send(
@@ -251,10 +232,10 @@ class ValidateCustomer extends Module
                         '{shopname}' => $this->context->shop->name),
                         $reg_email,
                         $this->context->shop->name,
-                        NULL,
+                        null,
                         $this->context->shop->name,
-                        NULL,
-                        NULL,
+                        null,
+                        null,
                         dirname(__FILE__).'/mails/'
                     );
                     PrestaShopLogger::addLog('VALCUS - Mail sent');
@@ -266,7 +247,7 @@ class ValidateCustomer extends Module
 
     public function hookDisplayCustomerAccountForm()
     {
-        return $this->display(__FILE__,'needactivation.tpl');
+        return $this->display(__FILE__, 'needactivation.tpl');
     }
 
     public function hookActionObjectCustomerUpdateBefore($params)
@@ -276,12 +257,10 @@ class ValidateCustomer extends Module
         $validate = Db::getInstance()->getValue('SELECT validate
         FROM `'._DB_PREFIX_.'customer_validate`
         WHERE `id_customer` = '.$customer->id);
-        if ($validate != 1) // if not validated
-        {
+        if ($validate != 1) { // if not validated
             $customer_db = new Customer($customer->id);
             // customer has to be loaded again, beacuse object already has changed the active status.
-            if ($customer_db->active != 1) // and if account is disabled before update
-            {
+            if ($customer_db->active != 1) { // and if account is disabled before update
                 $this->validate_customer[$customer->id] = true; // save state in array
             }
         }
@@ -290,43 +269,45 @@ class ValidateCustomer extends Module
     public function hookActionObjectCustomerUpdateAfter($params)
     {
         $customer = $params['object'];
-        if (isset($this->validate_customer[$customer->id])) // if customer is in array
-        {
+        if (isset($this->validate_customer[$customer->id])) { // if customer is in array
             $customer_db = new Customer($customer->id); // do not check object customer, check in database
-            if ($customer_db->active == 1) // and customer is active after update
-            {
+            if ($customer_db->active == 1) { // and customer is active after update
                 // check if customer is in DB
-                $id_customer = Db::getInstance()->getValue('SELECT id_customer
-                FROM `'._DB_PREFIX_.'customer_validate`
-                WHERE `id_customer` = '.$customer->id);
-                if ($id_customer > 0) // if id higher then 0, then update
-                {
-                    Db::getInstance()->update('customer_validate', array('validate' => 1),
-                        '`id_customer` = '.$customer->id);
-                }
-                else // customer is not in table, insert customer
-                {
-                    Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id,
-                        'validate' => 1) );
+                $id_customer = Db::getInstance()->getValue(
+                    'SELECT id_customer
+                    FROM `'._DB_PREFIX_.'customer_validate`
+                    WHERE `id_customer` = '.$customer->id
+                );
+                if ($id_customer > 0) {// if id higher then 0, then update
+                    Db::getInstance()->update(
+                        'customer_validate',
+                        array('validate' => 1),
+                        '`id_customer` = '.$customer->id
+                    );
+                } else {// customer is not in table, insert customer
+                    Db::getInstance()->insert(
+                        'customer_validate',
+                        array('id_customer' => $customer->id,
+                        'validate' => 1)
+                    );
                 }
 
-                if (Configuration::get('PS_MOD_VALCUS_SENDMAIL'))
-                {
-                // Send mail
-                Mail::Send(
-                    $customer->id_lang,
-                    'account_activated',
-                    Mail::l('Your account has been activated', $customer->id_lang),
-                    array('{email}' => $customer->email, '{firstname}' => $customer->firstname,
-                        '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
-                    $customer->email,
-                    $customer->lastname,
-                    NULL,
-                    $this->context->shop->name,
-                    NULL,
-                    NULL,
-                    dirname(__FILE__).'/mails/'
-                );
+                if (Configuration::get('PS_MOD_VALCUS_SENDMAIL')) {
+                    // Send mail
+                    Mail::Send(
+                        $customer->id_lang,
+                        'account_activated',
+                        Mail::l('Your account has been activated', $customer->id_lang),
+                        array('{email}' => $customer->email, '{firstname}' => $customer->firstname,
+                            '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
+                        $customer->email,
+                        $customer->lastname,
+                        null,
+                        $this->context->shop->name,
+                        null,
+                        null,
+                        dirname(__FILE__).'/mails/'
+                    );
                 }
                 unset($this->validate_customer[$customer->id]);
             }
