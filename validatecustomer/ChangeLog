@@ -28,7 +28,7 @@ Version 1.4
 Version 1.5 Beta
 * Added code to ignore guestaccounts from order process
 
--- A few years gap due to Madman got lost in a cave, or other wisebusy --
+-- A few years gap due to Madman got lost in a cave, or otherwise busy --
 
 Version 1.5.0
 * Updated for PS 1.7
@@ -38,3 +38,4 @@ Version 1.5.0
 
 Version 1.5.1
 * Re-added support for 1.6 versions
+* Updated code to PSR-2
