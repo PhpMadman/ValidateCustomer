@@ -27,7 +27,7 @@ class ValidateCustomer extends Module
     {
         $this->name = 'validatecustomer';
         $this->tab = 'administration';
-        $this->version = '1.5.1';
+        $this->version = '1.6.0';
         $this->author = 'Madman';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -47,20 +47,35 @@ class ValidateCustomer extends Module
             $this->registerHook('displayCustomerAccountForm') &&
             $this->registerHook('actionObjectCustomerUpdateBefore') &&
             $this->registerHook('actionObjectCustomerUpdateAfter') &&
-            $this->installDB()
+            $this->installDB() &&
+            Configuration::updateValue('PS_MOD_VALCUS_GROUPS', 3)
         );
     }
 
     public function getContent()
     {
         if (Tools::isSubmit('submitUpdateConfig')) {
-            $this->_updateConfig();
+            $this->updateConfig();
         }
         return $this->renderSettingsForm();
     }
 
-    private function _updateConfig()
+    private function updateConfig()
     {
+        $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
+        $groups = Group::getGroups($lang->id);
+        // Remove Visitor and Guest groups
+        unset($groups[0]);
+        unset($groups[1]);
+
+        $id_group = array();
+        foreach ($groups as $group) {
+            if (Tools::getValue('PS_MOD_VALCUS_GROUPS_'.$group['id_group'])) {
+                $id_group[] = $group['id_group'];
+            }
+        }
+
+        Configuration::updateValue('PS_MOD_VALCUS_GROUPS', implode(',', $id_group));
         Configuration::updateValue('PS_MOD_VALCUS_SENDMAIL', Tools::getValue('PS_MOD_VALCUS_SENDMAIL'));
         Configuration::updateValue('PS_MOD_VALCUS_SEND_REGMAIL', Tools::getValue('PS_MOD_VALCUS_SEND_REGMAIL'));
         Configuration::updateValue('PS_MOD_VALCUS_EMAILS', Tools::getValue('PS_MOD_VALCUS_EMAILS'));
@@ -68,6 +83,13 @@ class ValidateCustomer extends Module
 
     public function renderSettingsForm()
     {
+
+        $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
+        $groups = Group::getGroups($lang->id);
+        // Remove Visitor and Guest groups
+        unset($groups[0]);
+        unset($groups[1]);
+
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -75,7 +97,7 @@ class ValidateCustomer extends Module
                 ),
                 'input' => array(
                     array(
-                        'type' => $this->_getSwtichType(),
+                        'type' => $this->getSwtichType(),
                         'class' => 't',
                         'label' => $this->l('Send new registration mail'),
                         'name' => 'PS_MOD_VALCUS_SEND_REGMAIL',
@@ -98,16 +120,16 @@ class ValidateCustomer extends Module
                         'type' => 'text',
                         'name' => 'PS_MOD_VALCUS_EMAILS',
                         'label' => $this->l('Send email to the following addresses'),
-                        'hint' => $this->l('Coma seperated list'),
+                        'hint' => $this->l('Comma separated list'),
                         'size' => 100,
                     ),
                     array(
-                        'type' => $this->_getSwtichType(),
+                        'type' => $this->getSwtichType(),
                         'class' => 't',
                         'label' => $this->l('Auto send mail when account activated'),
                         'name' => 'PS_MOD_VALCUS_SENDMAIL',
                         'is_bool' => true,
-                        'hint' => $this->l('Inform the customer there account has been activated'),
+                        'hint' => $this->l('Inform the customer their account has been activated'),
                         'values' => array(
                             array(
                                 'id' => 'active_on',
@@ -121,6 +143,17 @@ class ValidateCustomer extends Module
                             ),
                         ),
                     ),
+                    array(
+                        'type' => 'checkbox',
+                        'name' => 'PS_MOD_VALCUS_GROUPS',
+                        'label' => $this->l('Customer groups that requires validation'),
+                        'hint' => $this->l('Selected groups cannot login until manually activated'),
+                        'values' => array(
+                            'query' => $groups,
+                            'id' => 'id_group',
+                            'name' => 'name'
+                        ),
+                    ),
             ), // input
             'submit' => array(
                 'title' => $this->l('Save'),
@@ -128,7 +161,7 @@ class ValidateCustomer extends Module
             ),
         );
 
-        if (!$this->_is16()) {
+        if (!$this->is16()) {
             foreach ($fields_form as &$form) {
                 foreach ($form as $key => &$table) {
                     if ($key == 'input') {
@@ -144,7 +177,6 @@ class ValidateCustomer extends Module
         $helper = new HelperForm();
         $helper->show_toolbar = false;
         $helper->table = $this->table;
-        $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
         $helper->default_form_language = $lang->id;
         $helper->allow_employee_form_lang = (Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ?
             Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0);
@@ -165,23 +197,38 @@ class ValidateCustomer extends Module
 
     public function getConfigFieldsValues()
     {
-        return array(
+        $cfg_fields = array(
             'PS_MOD_VALCUS_SENDMAIL' => Configuration::get('PS_MOD_VALCUS_SENDMAIL'),
             'PS_MOD_VALCUS_SEND_REGMAIL' => Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL'),
             'PS_MOD_VALCUS_EMAILS' => Configuration::get('PS_MOD_VALCUS_EMAILS'),
         );
+
+        // get groups from config
+        $id_group_config = array();
+        $cfgs = array();
+        if ($cfg = Configuration::get('PS_MOD_VALCUS_GROUPS')) {
+            $cfgs = explode(',', $cfg);
+        }
+
+        foreach ($cfgs as $cfg) {
+            $id_group_config['PS_MOD_VALCUS_GROUPS_'.$cfg] = true;
+        }
+
+        $cfg_fields = array_merge($cfg_fields, $id_group_config);
+
+        return $cfg_fields;
     }
 
-    private function _getSwtichType()
+    private function getSwtichType()
     {
-        if ($this->_is16()) {
+        if ($this->is16()) {
             return 'switch';
         } else {
             return 'radio';
         }
     }
 
-    private function _is16($not17 = false)
+    private function is16($not17 = false)
     {
         // Version is higher or equal to 1.6
         if (version_compare(_PS_VERSION_, '1.6', '>=') >= 1) {
@@ -210,19 +257,25 @@ class ValidateCustomer extends Module
     {
         // This is the hook that actually disables customer
         $customer = new Customer($this->context->customer->id);
-        if ($customer->is_guest) {
-        // Do nothing
-        } else {
+
+        $groups = Configuration::get('PS_MOD_VALCUS_GROUPS');
+        $groups = explode(',', $groups);
+        $needValidation = false;
+        foreach ($groups as $id) {
+            if ($customer->id_default_group == $id) {
+                $needValidation = true;
+                break;
+            }
+        }
+
+        if ($needValidation) {
             $this->context->customer->mylogout();
             $customer->active = 0;
             $customer->update();
             Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id));
             if (Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL')) {
-                PrestaShopLogger::addLog('VALCUS - Reg Mail On');
                 $emails = explode(',', Configuration::get('PS_MOD_VALCUS_EMAILS'));
-                PrestaShopLogger::addLog('E-mails: '.Configuration::get('PS_MOD_VALCUS_EMAILS'));
                 foreach ($emails as $reg_email) {
-                    PrestaShopLogger::addLog('VALCUS - forreach mail');
                     // Send mail
                     Mail::Send(
                         Configuration::get('PS_LANG_DEFAULT'),
@@ -238,7 +291,6 @@ class ValidateCustomer extends Module
                         null,
                         dirname(__FILE__).'/mails/'
                     );
-                    PrestaShopLogger::addLog('VALCUS - Mail sent');
                 }
             }
             Tools::redirect(Context::getContext()->link->getModuleLink('validatecustomer', 'validate'));

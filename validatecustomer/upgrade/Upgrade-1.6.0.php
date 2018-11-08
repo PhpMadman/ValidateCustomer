@@ -1,4 +1,5 @@
-{*
+<?php
+/**
 * 2018 Madman
 *
 * NOTICE OF LICENSE
@@ -14,13 +15,10 @@
 *  @author    Madman
 *  @copyright 2018 Madman
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
-*}
+*/
 
-{extends file='page.tpl'}
-
-{block name='page_content'}
-<span style="font-size:14px">
-{l s='Thank you for registering' mod='validatecustomer'}.<br>
-{l s='Your account must be approved by an admin before you can login' mod='validatecustomer'}.<br>
-</span>
-{/block}
+function upgrade_module_1_6_0()
+{
+    Configuration::updateValue('PS_MOD_VALCUS_GROUPS', 3);
+    return true; // Return true if success.
+}

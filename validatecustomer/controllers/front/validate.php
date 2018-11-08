@@ -27,8 +27,8 @@ class ValidateCustomerValidateModuleFrontController extends ModuleFrontControlle
     public function initContent()
     {
         parent::initContent();
-        if ((version_compare(_PS_VERSION_, '1.6', '>=') >= 1) && (version_compare(_PS_VERSION_, '1.7', '<') >= 1)) {
-            $this->setTemplate('validate.tpl');
+        if ((version_compare(_PS_VERSION_, '1.5', '>=') >= 1) && (version_compare(_PS_VERSION_, '1.7', '<') >= 1)) {
+            $this->setTemplate('validate-1.6.tpl');
         } else {
             $this->setTemplate('module:validatecustomer/views/templates/front/validate.tpl');
         }

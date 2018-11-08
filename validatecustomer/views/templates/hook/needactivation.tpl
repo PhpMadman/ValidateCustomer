@@ -15,9 +15,10 @@
 *  @copyright 2018 Madman
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *}
-
+{if $page.page_name != 'identity'}
 <p>
 <strong class="exclusive">
-{l s='Your account must be approved by an admin before you can login after registering' mod='validatecustomer'}
+{l s='Your account might need to be approved by an admin before you can login after registering' mod='validatecustomer'}
 </strong><br>
 </p>
+{/if}
