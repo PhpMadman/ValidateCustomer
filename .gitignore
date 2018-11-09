@@ -1,2 +1,5 @@
 *.bak
 validatecustomer.zip
+icons/*
+docs/*.odt
+docs/*.odt#

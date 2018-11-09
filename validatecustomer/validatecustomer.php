@@ -35,6 +35,7 @@ class ValidateCustomer extends Module
         parent::__construct();
         $this->displayName = $this->l('Validate Customer');
         $this->description = $this->l('Validate customer before they can login');
+        $this->module_key = 'e7920a6194d2ac3fb2ded8736be03a06';
     }
 
     public function install()
