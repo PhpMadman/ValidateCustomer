@@ -1,6 +1,6 @@
 <?php
 /**
-* 2018 Madman
+* 2019 Madman
 *
 * NOTICE OF LICENSE
 *
@@ -13,7 +13,7 @@
 * to license@prestashop.com so we can send you a copy immediately.
 *
 *  @author    Madman
-*  @copyright 2018 Madman
+*  @copyright 2019 Madman
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 */
 
@@ -27,7 +27,7 @@ class ValidateCustomer extends Module
     {
         $this->name = 'validatecustomer';
         $this->tab = 'administration';
-        $this->version = '1.6.0';
+        $this->version = '1.6.1';
         $this->author = 'Madman';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -234,7 +234,7 @@ class ValidateCustomer extends Module
         // Version is higher or equal to 1.6
         if (version_compare(_PS_VERSION_, '1.6', '>=') >= 1) {
             if ($not17) {
-                // Version is higher or equal to 1.7 and therfore is not 1.6
+                // Version is higher or equal to 1.7 and there for is not 1.6
                 if (version_compare(_PS_VERSION_, '1.7', '>=') >= 1) {
                     return false;
                 }
@@ -247,16 +247,21 @@ class ValidateCustomer extends Module
 
     private function installDB()
     {
-        return Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'customer_validate` (
+        $installedDb = Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'customer_validate` (
             `id_customer` int(10) NOT NULL,
             `validate` int(1) NOT NULL DEFAULT 0,
             PRIMARY KEY (`id_customer`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8;');
+        if (!$installedDb) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public function hookActionCustomerAccountAdd()
     {
-        // This is the hook that actually disables customer
+        // This is the hook that actually disables the customer
         $customer = new Customer($this->context->customer->id);
 
         $groups = Configuration::get('PS_MOD_VALCUS_GROUPS');
@@ -273,28 +278,32 @@ class ValidateCustomer extends Module
             $this->context->customer->mylogout();
             $customer->active = 0;
             $customer->update();
-            Db::getInstance()->insert('customer_validate', array('id_customer' => $customer->id));
-            if (Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL')) {
-                $emails = explode(',', Configuration::get('PS_MOD_VALCUS_EMAILS'));
-                foreach ($emails as $reg_email) {
-                    // Send mail
-                    Mail::Send(
-                        Configuration::get('PS_LANG_DEFAULT'),
-                        'new_reg',
-                        Mail::l('A new customers has registered', Configuration::get('PS_LANG_DEFAULT')),
-                        array('{email}' => $customer->email,
-                        '{shopname}' => $this->context->shop->name),
-                        $reg_email,
-                        $this->context->shop->name,
-                        null,
-                        $this->context->shop->name,
-                        null,
-                        null,
-                        dirname(__FILE__).'/mails/'
-                    );
+            if (Validate::isUnsignedInt($customer->id)) {
+                Db::getInstance()->insert('customer_validate', array('id_customer' => (int)$customer->id));
+                if (Configuration::get('PS_MOD_VALCUS_SEND_REGMAIL')) {
+                    $emails = explode(',', Configuration::get('PS_MOD_VALCUS_EMAILS'));
+                    foreach ($emails as $reg_email) {
+                        // Send mail
+                        Mail::Send(
+                            Configuration::get('PS_LANG_DEFAULT'),
+                            'new_reg',
+                            Mail::l('A new customers has registered', Configuration::get('PS_LANG_DEFAULT')),
+                            array('{email}' => $customer->email,
+                            '{shopname}' => $this->context->shop->name),
+                            $reg_email,
+                            $this->context->shop->name,
+                            null,
+                            $this->context->shop->name,
+                            null,
+                            null,
+                            dirname(__FILE__).'/mails/'
+                        );
+                    }
                 }
+                Tools::redirect(Context::getContext()->link->getModuleLink('validatecustomer', 'validate'));
+            } else {
+                 $this->errors[] = $this->trans('Could not update customer', array(), 'Module.ValidateCustomer.Shop');
             }
-            Tools::redirect(Context::getContext()->link->getModuleLink('validatecustomer', 'validate'));
         }
     }
 
@@ -307,63 +316,76 @@ class ValidateCustomer extends Module
     {
         $customer = $params['object']; // Get customer object
         // check if customer has been validated
-        $validate = Db::getInstance()->getValue('SELECT validate
-        FROM `'._DB_PREFIX_.'customer_validate`
-        WHERE `id_customer` = '.$customer->id);
-        if ($validate != 1) { // if not validated
-            $customer_db = new Customer($customer->id);
-            // customer has to be loaded again, beacuse object already has changed the active status.
-            if ($customer_db->active != 1) { // and if account is disabled before update
-                $this->validate_customer[$customer->id] = true; // save state in array
+        if (Validate::isUnsignedInt($customer->id)) {
+            $validate = Db::getInstance()->getValue('SELECT validate
+            FROM `'._DB_PREFIX_.'customer_validate`
+            WHERE `id_customer` = '.(int)$customer->id);
+            if ($validate != 1) { // if not validated
+                $customer_db = new Customer($customer->id);
+                // customer has to be loaded again, beacuse object already has changed the active status.
+                if ($customer_db->active != 1) { // and if account is disabled before update
+                    $this->validate_customer[$customer->id] = true; // save state in array
+                }
             }
+        } else {
+            // This call is only multiline to avoid PSR-2 120 char limit
+            $this->errors[] = $this->trans(
+                'Could not read customer validation',
+                array(),
+                'Module.ValidateCustomer.Shop'
+            );
         }
     }
 
     public function hookActionObjectCustomerUpdateAfter($params)
     {
         $customer = $params['object'];
-        if (isset($this->validate_customer[$customer->id])) { // if customer is in array
-            $customer_db = new Customer($customer->id); // do not check object customer, check in database
-            if ($customer_db->active == 1) { // and customer is active after update
-                // check if customer is in DB
-                $id_customer = Db::getInstance()->getValue(
-                    'SELECT id_customer
-                    FROM `'._DB_PREFIX_.'customer_validate`
-                    WHERE `id_customer` = '.$customer->id
-                );
-                if ($id_customer > 0) {// if id higher then 0, then update
-                    Db::getInstance()->update(
-                        'customer_validate',
-                        array('validate' => 1),
-                        '`id_customer` = '.$customer->id
+        if (Validate::isUnsignedInt($customer->id)) {
+            if (isset($this->validate_customer[$customer->id])) { // if customer is in array
+                $customer_db = new Customer($customer->id); // do not check object customer, check in database
+                if ($customer_db->active == 1) { // and customer is active after update
+                    // check if customer is in DB
+                    $id_customer = Db::getInstance()->getValue(
+                        'SELECT id_customer
+                        FROM `'._DB_PREFIX_.'customer_validate`
+                        WHERE `id_customer` = '.(int)$customer->id
                     );
-                } else {// customer is not in table, insert customer
-                    Db::getInstance()->insert(
-                        'customer_validate',
-                        array('id_customer' => $customer->id,
-                        'validate' => 1)
-                    );
-                }
+                    if ($id_customer > 0) {// if id higher then 0, then update
+                        Db::getInstance()->update(
+                            'customer_validate',
+                            array('validate' => 1),
+                            '`id_customer` = '.(int)$customer->id
+                        );
+                    } else {// customer is not in table, insert customer
+                        Db::getInstance()->insert(
+                            'customer_validate',
+                            array('id_customer' => (int)$customer->id,
+                            'validate' => 1)
+                        );
+                    }
 
-                if (Configuration::get('PS_MOD_VALCUS_SENDMAIL')) {
-                    // Send mail
-                    Mail::Send(
-                        $customer->id_lang,
-                        'account_activated',
-                        Mail::l('Your account has been activated', $customer->id_lang),
-                        array('{email}' => $customer->email, '{firstname}' => $customer->firstname,
-                            '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
-                        $customer->email,
-                        $customer->lastname,
-                        null,
-                        $this->context->shop->name,
-                        null,
-                        null,
-                        dirname(__FILE__).'/mails/'
-                    );
+                    if (Configuration::get('PS_MOD_VALCUS_SENDMAIL')) {
+                        // Send mail
+                        Mail::Send(
+                            $customer->id_lang,
+                            'account_activated',
+                            Mail::l('Your account has been activated', $customer->id_lang),
+                            array('{email}' => $customer->email, '{firstname}' => $customer->firstname,
+                                '{lastname}' => $customer->lastname, '{shopname}' => $this->context->shop->name),
+                            $customer->email,
+                            $customer->lastname,
+                            null,
+                            $this->context->shop->name,
+                            null,
+                            null,
+                            dirname(__FILE__).'/mails/'
+                        );
+                    }
+                    unset($this->validate_customer[$customer->id]);
                 }
-                unset($this->validate_customer[$customer->id]);
             }
+        } else {
+            $this->errors[] = $this->trans('Could not read customer', array(), 'Module.ValidateCustomer.Shop');
         }
     }
 }

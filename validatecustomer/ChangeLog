@@ -47,3 +47,7 @@ Version 1.6.0
 * Improved text displayed to customer
 * More updates to PSR-2
 * Don't show need activation message if customer is logged in
+
+Version 1.6.1
+* Added SQL security code
+* Happy 2019
