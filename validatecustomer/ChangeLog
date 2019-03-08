@@ -41,9 +41,9 @@ Version 1.5.1
 
 Version 1.6.0
 * Add option to select customergroups that need validation (Default Customer group is auto selected)
-* Hide need activation msg on identity page
 * Removed debug code
 * Fixed bug in PS 1.6 support for validation message
 * Fixed spellings mistakes
 * Improved text displayed to customer
 * More updates to PSR-2
+* Don't show need activation message if customer is logged in
