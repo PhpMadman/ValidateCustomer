@@ -1,5 +1,5 @@
 *.bak
-validatecustomer.zip
-icons/*
+validatecustomer*.zip
+Icons/*
 docs/*.odt
 docs/*.odt#

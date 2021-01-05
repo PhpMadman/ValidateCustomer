@@ -1,6 +1,6 @@
 <?php
 /**
-* 2019 Madman
+* 2021 Madman
 *
 * NOTICE OF LICENSE
 *
@@ -13,7 +13,7 @@
 * to license@prestashop.com so we can send you a copy immediately.
 *
 *  @author    Madman
-*  @copyright 2019 Madman
+*  @copyright 2021 Madman
 *  @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 */
 
@@ -27,7 +27,7 @@ class ValidateCustomer extends Module
     {
         $this->name = 'validatecustomer';
         $this->tab = 'administration';
-        $this->version = '1.6.1';
+        $this->version = '1.6.2';
         $this->author = 'Madman';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -55,20 +55,27 @@ class ValidateCustomer extends Module
 
     public function getContent()
     {
+        $output = '';
         if (Tools::isSubmit('submitUpdateConfig')) {
-            $this->updateConfig();
+            $output .= $this->updateConfig();
         }
-        return $this->renderSettingsForm();
+
+        $output .= $this->renderSettingsForm();
+
+        return $output;
     }
 
     private function updateConfig()
     {
+        $output = '';
+
         $lang = new Language((int)Configuration::get('PS_LANG_DEFAULT'));
         $groups = Group::getGroups($lang->id);
         // Remove Visitor and Guest groups
         unset($groups[0]);
         unset($groups[1]);
 
+        // Merge group values in to one array
         $id_group = array();
         foreach ($groups as $group) {
             if (Tools::getValue('PS_MOD_VALCUS_GROUPS_'.$group['id_group'])) {
@@ -76,10 +83,22 @@ class ValidateCustomer extends Module
             }
         }
 
+        // E-mails can not be empty if regmail is enabled
+        $regMail = Tools::getValue('PS_MOD_VALCUS_SEND_REGMAIL');
+        if ($regMail == 1) {
+            if (empty(Tools::getValue('PS_MOD_VALCUS_EMAILS'))) {
+                $regMail = 0;
+                $output .= $this->displayError($this->l('E-mails is empty, Reg Mail was not enabled!'));
+            }
+        }
+
         Configuration::updateValue('PS_MOD_VALCUS_GROUPS', implode(',', $id_group));
         Configuration::updateValue('PS_MOD_VALCUS_SENDMAIL', Tools::getValue('PS_MOD_VALCUS_SENDMAIL'));
-        Configuration::updateValue('PS_MOD_VALCUS_SEND_REGMAIL', Tools::getValue('PS_MOD_VALCUS_SEND_REGMAIL'));
+        Configuration::updateValue('PS_MOD_VALCUS_SEND_REGMAIL', $regMail);
         Configuration::updateValue('PS_MOD_VALCUS_EMAILS', Tools::getValue('PS_MOD_VALCUS_EMAILS'));
+
+        $output .= $this->displayConfirmation($this->l('Settings updated'));
+        return $output;
     }
 
     public function renderSettingsForm()

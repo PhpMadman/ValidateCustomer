@@ -51,3 +51,9 @@ Version 1.6.0
 Version 1.6.1
 * Added SQL security code
 * Happy 2019
+
+-- Another few years gap due to Madman got stranded on a island, or otherwise busy --
+
+Version 1.6.2
+* Added success msg for Settings Saved
+* Added error msg if no e-mails, and reg mail is enabled
